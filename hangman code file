@@ -1,0 +1,104 @@
+import tkinter as tk
+import random
+
+class HangmanGame(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        self.title("Hangman Game")
+        self.geometry("400x400")
+        self.word_list = ['python', 'hangman', 'computer', 'programming', 'game', 'developer', 'coding', 'algorithm', 'variable', 'function', 'database', 'framework', 'debugging', 'syntax', 'compiler', 'interface', 'javascript', 'html', 'css', 'java', 'ruby', 'api', 'bootstrap', 'backend', 'frontend', 'react', 'node', 'git', 'linux', 'terminal']
+        self.word = random.choice(self.word_list)
+        self.guessed_letters = []
+        self.attempts = 6
+        
+        self.word_display = tk.Label(self, text=self.display_word(), font=("Arial", 24))
+        self.word_display.pack(pady=20)
+
+        self.input_frame = tk.Frame(self)
+        self.input_frame.pack(pady=10)
+
+        self.input_label = tk.Label(self.input_frame, text="Enter a letter:")
+        self.input_label.pack(side=tk.LEFT)
+
+        self.input_entry = tk.Entry(self.input_frame, width=5, font=("Arial", 18))
+        self.input_entry.pack(side=tk.LEFT)
+
+        self.guess_button = tk.Button(self.input_frame, text="Guess", command=self.guess_letter)
+        self.guess_button.pack(side=tk.LEFT, padx=10)
+
+        self.restart_button = tk.Button(self, text="Restart", command=self.restart_game)
+        self.restart_button.pack(pady=20)
+
+        self.hangman_canvas = tk.Canvas(self, width=200, height=200)
+        self.hangman_canvas.pack()
+
+        self.update_hangman()
+
+    def display_word(self):
+        display = ''
+        for letter in self.word:
+            if letter in self.guessed_letters:
+                display += letter + ' '
+            else:
+                display += '_ '
+        return display
+
+    def guess_letter(self):
+        letter = self.input_entry.get().lower()
+        self.input_entry.delete(0, tk.END)
+        if letter not in self.guessed_letters:
+            self.guessed_letters.append(letter)
+            if letter not in self.word:
+                self.attempts -= 1
+            self.update_word_display()
+            self.update_hangman()
+            self.check_game_status()
+
+    def update_word_display(self):
+        self.word_display.config(text=self.display_word())
+
+    def update_hangman(self):
+        self.hangman_canvas.delete("all")
+        if self.attempts < 6:
+            parts = ["head", "body", "left_arm", "right_arm", "left_leg", "right_leg"]
+            for i in range(6 - self.attempts):
+                self.hangman_canvas.create_line(20, 180, 180, 180, width=3)
+                if parts[i] == "head":
+                    self.hangman_canvas.create_oval(140, 40, 180, 80, width=3)
+                elif parts[i] == "body":
+                    self.hangman_canvas.create_line(160, 80, 160, 140, width=3)
+                elif parts[i] == "left_arm":
+                    self.hangman_canvas.create_line(160, 100, 130, 120, width=3)
+                elif parts[i] == "right_arm":
+                    self.hangman_canvas.create_line(160, 100, 190, 120, width=3)
+                elif parts[i] == "left_leg":
+                    self.hangman_canvas.create_line(160, 140, 130, 170, width=3)
+                elif parts[i] == "right_leg":
+                    self.hangman_canvas.create_line(160, 140, 190, 170, width=3)
+
+    def check_game_status(self):
+        if all(letter in self.guessed_letters for letter in self.word):
+            self.end_game("Congratulations! You win!")
+        elif self.attempts == 0:
+            self.end_game(f"Sorry, you lose. The word was '{self.word}'.")
+
+    def end_game(self, message):
+        self.restart_button.config(state=tk.NORMAL)
+        self.input_entry.config(state=tk.DISABLED)
+        self.guess_button.config(state=tk.DISABLED)
+        self.input_label.config(text=message)
+
+    def restart_game(self):
+        self.word = random.choice(self.word_list)
+        self.guessed_letters = []
+        self.attempts = 6
+        self.update_word_display()
+        self.update_hangman()
+        self.input_entry.config(state=tk.NORMAL)
+        self.guess_button.config(state=tk.NORMAL)
+        self.input_label.config(text="Enter a letter:")
+
+
+if __name__ == "__main__":
+    app = HangmanGame()
+    app.mainloop()
